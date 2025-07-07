@@ -1,7 +1,0 @@
-Aggiungere grafica lato client, aggiungendo switch per RAG e Guardrails e allega file
-
-Aggiungere logica nel bot per chiamare coverage api con Guardrails
-
-Spostare la logica dei print dal main ad una classe view
-
-Capire ed implementare RAG
