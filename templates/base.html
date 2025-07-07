@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ChatBot</title>
+    <link rel="icon" href="{{url_for('static', filename='img/favicon.ico')}}" type="image/x-icon">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/style.css')}}"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+  <body>
+    <div class="container">
+      <div class="content container-fluid bootstrap snippets bootdey">
+        <!--<div class="row row-broken">-->
+          <div class="col-sm-9 col-xs-12 chat" style="overflow: hidden; outline: none;" tabindex="5001">
+            <div class="col-inside-lg decor-default">
+              <div class="chat-container">
+                <h6 class="chat-header">
+                  <span>Chat</span>
+                  <div class ="chat-controls">
+                    <span>Change the model:</span>
+                      <select id="model-select" class="form-select model-select">
+                        <option value="nova-lite">Amazon Nova Lite</option>
+                        <option value="nova-micro">Amazon Nova Micro</option>
+                      </select>
+                    <button id="clear-btn" class="chat-send-btn clear" onClick="clearChat()">Clear Chat</button>
+                  </div>
+                </h6>
+                <div id="chat-body" class="chat-body">
+                  {% block content%}
+
+                  {% endblock %}
+                </div>
+                {% block userInput %}
+
+                {% endblock %}
+              </div>
+            </div>
+          </div> 
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

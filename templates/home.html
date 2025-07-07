@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div id="chat-placeholder" class="chat-placeholder">
+        Ask something...
+    </div>
+{% endblock %}
+
+
+{% block userInput %}
+    <div class="chat-input-container">
+        <textarea id="message" class="chat-input" placeholder="Type your message..." name="user_message">{{ user_message }}</textarea>
+        <button type="button" name="send" class="chat-send-btn" id="send-btn" onClick="sendMessage()">Send</button>
+    </div>
+    <script src="{{url_for('static', filename='js/script.js')}}"></script>
+{% endblock %}
