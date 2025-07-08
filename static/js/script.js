@@ -7,12 +7,21 @@ const clear_btn = document.getElementById("clear-btn")
 const rag_switch = document.getElementById("rag-switch")
 const guardrail_switch = document.getElementById("guardrails-switch")
 
+const file_input = document.getElementById("file-input");
+const upload_button = document.getElementById("upload-button");
+let selectedFile = null;
+
 rag_switch.addEventListener("change", () => {
     const isEnabled = rag_switch.checked;
     socketio.emit("switch_status", {
         type: "rag_status",
         status: isEnabled
     });
+    if (isEnabled) {
+        upload_button.classList.remove("disabled");
+    } else {
+        upload_button.classList.add("disabled")
+    }
 });
 
 guardrail_switch.addEventListener("change", () => {
@@ -93,6 +102,7 @@ const createModelMessage = (msg, msg_id) => {
     // Match only complete lines with three backticks
     const codeBlockBoundary = /(^|\n)```/g;
     const matches = [...modelBuffer.matchAll(codeBlockBoundary)];
+    const isCodeBlockEnd = /```$/.test(modelBuffer.trim()) || /```\n?$/.test(modelBuffer);
 
     if (matches.length % 2 === 1) {
         insideCodeBlock = true;
@@ -146,12 +156,49 @@ const sendMessage = () => {
     if (message.value == "") return;
 
     chat_placeholder.style.display = "none";
-    socketio.emit("message", {data: message.value})
+    if (selectedFile) {
+        const fileToSend = selectedFile;
+        const messageToSend = message.value;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const arrayBuffer = e.target.result;
+            socketio.emit("message", {
+                filename: fileToSend.name,
+                filedata: arrayBuffer,
+                data: messageToSend
+            });
+        } ;
+        reader.readAsArrayBuffer(fileToSend);
+    } else {
+        socketio.emit("message", {data: message.value})
+    }
+    
     createUserMessage(message.value)
     message.value = "";
+    file_input.value = "";
+    selectedFile = null;
 }
 
 document.getElementById("model-select").addEventListener('change', function () {
     const selectedModel = this.value;
     socketio.emit('model_selected', {model : selectedModel});
 });
+
+
+
+upload_button.addEventListener("click", function() {
+    file_input.click();
+});
+
+file_input.addEventListener("change", function() {
+    const file = this.files[0];
+    if (file && file.name.endsWith('.txt')) {
+        selectedFile = file;
+        alert(`File "${file.name}" ready to send with your message.`);
+    } else {
+        alert(`Only .txt file are allowed, and also you can send 1 file at time`);
+        this.value = '';
+        selectedFile = null;
+    }
+});
+

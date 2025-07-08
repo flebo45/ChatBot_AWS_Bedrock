@@ -34,10 +34,18 @@
                     {% endif %} 
                 </label>
             </div>
-            <button class="upload-button" id="upload-button" type="button">
-                file
-            </button>
-            <input type="file" id="file-input" accept=".txt" style="display: none;">
+            {% if rag_status %}
+                <button class="upload-button" id="upload-button" type="button">
+                    file
+                </button>
+                <input type="file" id="file-input" accept=".txt" style="display: none;">
+            {% else %}
+                <button class="upload-button disabled" id="upload-button" type="button">
+                    file
+                </button>
+                <input type="file" id="file-input" accept=".txt" style="display: none;">
+            {% endif %}
+            
         </div>
         <textarea id="message" class="chat-input" placeholder="Type your message..." name="user_message">{{ user_message }}</textarea>
         <button type="button" name="send" class="chat-send-btn" id="send-btn" onClick="sendMessage()">Send</button>

@@ -458,3 +458,9 @@ button:disabled {
 .upload-button:hover {
   background-color: #45a049;
 }
+
+.upload-button.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+}

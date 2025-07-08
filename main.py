@@ -39,6 +39,9 @@ streaming = True  # Set to True to enable streaming
 
 bot = Bot(client, logger, model_id)
 
+UPLOAD_FOLDER = 'source_documents'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "alsldkjfjc"
@@ -56,7 +59,8 @@ def clear(data):
         print(bot.getMessagesNumber())
 
 @socketio.on("message")
-def message(data): 
+def message(data):
+    """
     response = bot.call_converse_api(system_message, data["data"], streaming)
     msg_id = bot.getMessagesNumber()
     if not streaming:
@@ -131,6 +135,8 @@ def message(data):
                 if 'metrics' in event['metadata']:
                     print(
                         f"Latency: {metadata['metrics']['latencyMs']} milliseconds")
+    """
+    
 
 @socketio.on("model_selected")
 def model_selected(data):    
@@ -150,6 +156,13 @@ def switch_status(data):
 
     elif data["type"] == "rag_status":
         bot.setRag(data["status"])
+        
+        
+def makeFile(filename, filedata):
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    with open(filepath, 'wb') as f:
+        f.write(filedata)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
