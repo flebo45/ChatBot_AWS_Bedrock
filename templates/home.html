@@ -9,6 +9,36 @@
 
 {% block userInput %}
     <div class="chat-input-container">
+        <div class="bottom-controls">
+            <div class="switches">
+                <label class="switch">
+                    {% if rag_status %}
+                        <input type="checkbox" id="rag-switch" checked>
+                        <span class="slider"></span>
+                        <span class="label-text">RAG</span>
+                    {% else %}
+                        <input type="checkbox" id="rag-switch">
+                        <span class="slider"></span>
+                        <span class="label-text">RAG</span>
+                    {% endif %}
+                </label>
+                <label class="switch">
+                    {% if guardrails_status %}
+                        <input type="checkbox" id="guardrails-switch" checked>
+                        <span class="slider"></span>
+                        <span class="label-text">Guardrails</span>
+                    {% else %}
+                        <input type="checkbox" id="guardrails-switch">
+                        <span class="slider"></span>
+                        <span class="label-text">Guardrails</span>
+                    {% endif %} 
+                </label>
+            </div>
+            <button class="upload-button" id="upload-button" type="button">
+                file
+            </button>
+            <input type="file" id="file-input" accept=".txt" style="display: none;">
+        </div>
         <textarea id="message" class="chat-input" placeholder="Type your message..." name="user_message">{{ user_message }}</textarea>
         <button type="button" name="send" class="chat-send-btn" id="send-btn" onClick="sendMessage()">Send</button>
     </div>

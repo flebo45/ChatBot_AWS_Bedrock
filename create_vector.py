@@ -37,6 +37,6 @@ else:
     print(f"Table {table_name} already exists, using existing table...")
     tbl = db.open_table(table_name)
 
-rs = tbl.search("EcoClean").limit(5)
+rs = tbl.search("Hi, i would to buy an vacuum cleaner, could you give me some advises?").limit(5)
 print(rs.to_pydantic(TextModel))
 print(rs.to_pandas())

@@ -24,6 +24,10 @@ os.environ['AWS_SESSION_TOKEN'] = ""
 # Create a Bedrock client
 client = boto3.client('bedrock-runtime', region_name='eu-central-1')  # Change region if needed
 
+"""
+Bot Initialization
+"""
+# Define model system message
 system_message = "You are an helpfull assistant."
 
 # Define model name and whether to use streaming
@@ -31,6 +35,7 @@ system_message = "You are an helpfull assistant."
 # eu.amazon.nova-micro-v1:0
 model_id = "eu.amazon.nova-lite-v1:0"  # Replace with actual model name
 streaming = True  # Set to True to enable streaming
+
 
 bot = Bot(client, logger, model_id)
 
@@ -41,7 +46,8 @@ socketio = SocketIO(app)
 
 @app.route("/", methods=["GET", "POST"])
 def home():
-    return render_template("home.html")
+    print(bot.getRag())
+    return render_template("home.html", rag_status = bot.getRag(), guardrails_status = bot.getGuardrails())
 
 @socketio.on("clear")
 def clear(data):
@@ -136,6 +142,14 @@ def model_selected(data):
         bot.setModel("nova-lite")
     print(bot.getModel())
     
+@socketio.on("switch_status")
+def switch_status(data):
+    print(f"{data}")
+    if data["type"] == "guardrails_status":
+        bot.setGuardrails(data["status"])
+
+    elif data["type"] == "rag_status":
+        bot.setRag(data["status"])
 
 if __name__ == '__main__':
     app.run(debug=True)

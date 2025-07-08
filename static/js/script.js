@@ -4,6 +4,24 @@ const messages = document.getElementById("chat-body")
 const textbox = document.getElementById("message")
 const send_btn = document.getElementById("send-btn")
 const clear_btn = document.getElementById("clear-btn")
+const rag_switch = document.getElementById("rag-switch")
+const guardrail_switch = document.getElementById("guardrails-switch")
+
+rag_switch.addEventListener("change", () => {
+    const isEnabled = rag_switch.checked;
+    socketio.emit("switch_status", {
+        type: "rag_status",
+        status: isEnabled
+    });
+});
+
+guardrail_switch.addEventListener("change", () => {
+    const isEnabled = guardrail_switch.checked;
+    socketio.emit("switch_status", {
+        type: "guardrails_status",
+        status: isEnabled
+    });
+});
 
 
 clear_btn.addEventListener("click", function() {

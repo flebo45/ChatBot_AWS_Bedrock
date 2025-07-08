@@ -18,6 +18,8 @@ class Bot:
         self.client = client
         self.logger = logger
         self.model_id = model_id
+        self.rag = True
+        self.guardrails = True
         if self.model_id == "eu.amazon.nova-lite-v1:0":
             self.maxInputToken = 300000
         elif self.model_id == "eu.amazon.nova-micro-v1:0":
@@ -42,6 +44,24 @@ class Bot:
         else:
             self.model_id = "eu.amazon.nova-lite-v1:0"
             self.maxInputToken = 300000
+    
+    def getRag(self):
+        return self.rag
+    
+    def setRag(self, rag_status):
+        if rag_status:
+            self.rag = True
+        else:
+            self.rag = False
+            
+    def getGuardrails(self):
+        return self.guardrails
+    
+    def setGuardrails(self, guardrails_status):
+        if guardrails_status:
+            self.guardrails = True
+        else:
+            self.guardrails = False
         
         
     def call_converse_api(self,system_message, user_message, streaming=False):
@@ -80,31 +100,67 @@ class Bot:
         self.addMessage(message)
         
         if not streaming:
-            # Call the Converse API
-            response = self.client.converse(
-                modelId=self.model_id,
-                messages=self.messages,
-                system=system_prompts,
-                inferenceConfig=inference_config,
-                additionalModelRequestFields=additional_model_fields
-            )
-            
+            if self.guardrails:
+                guardrail_config = {
+                    "guardrailIdentifier": "bz9vanuflnf5",
+                    "guardrailVersion": "1",
+                    "trace": "enabled"
+                }
+                
+                # Call the Converse API
+                response = self.client.converse(
+                    modelId=self.model_id,
+                    messages=self.messages,
+                    system=system_prompts,
+                    inferenceConfig=inference_config,
+                    additionalModelRequestFields=additional_model_fields,
+                    guardrailConfig=guardrail_config
+                )
+                
+            else:
+                # Call the Converse API
+                response = self.client.converse(
+                    modelId=self.model_id,
+                    messages=self.messages,
+                    system=system_prompts,
+                    inferenceConfig=inference_config,
+                    additionalModelRequestFields=additional_model_fields
+                )
+
             return response
 
         else:
-            response = self.client.converse_stream(
-                modelId=self.model_id,
-                messages=self.messages,
-                system=system_prompts,
-                inferenceConfig=inference_config,
-                additionalModelRequestFields=additional_model_fields
-            )
+            if self.guardrails:
+                guardrail_config = {
+                    "guardrailIdentifier": "bz9vanuflnf5",
+                    "guardrailVersion": "1",
+                    "trace": "enabled",
+                    "streamProcessingMode": "sync"
+                }
+                
+                response = self.client.converse_stream(
+                    modelId=self.model_id,
+                    messages=self.messages,
+                    system=system_prompts,
+                    inferenceConfig=inference_config,
+                    additionalModelRequestFields=additional_model_fields,
+                    guardrailConfig=guardrail_config
+                )
+                
+            else:
+                response = self.client.converse_stream(
+                    modelId=self.model_id,
+                    messages=self.messages,
+                    system=system_prompts,
+                    inferenceConfig=inference_config,
+                    additionalModelRequestFields=additional_model_fields
+                )
+    
             stream = response.get('stream')
             if stream:
                 return stream
                 
-                        
-
+ 
     def clearMessages(self):
         self.messages.clear()
         
