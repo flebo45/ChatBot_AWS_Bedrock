@@ -1,4 +1,5 @@
 __pycache__/
 .venv/
 source_documents/*
+!source_documents/ .gitkeep
 todo.txt
