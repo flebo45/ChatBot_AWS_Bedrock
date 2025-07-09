@@ -1,5 +1,6 @@
 __pycache__/
 .venv/
+tables/
 source_documents/*
 !source_documents/README.md
 todo.txt
