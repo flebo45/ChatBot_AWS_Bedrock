@@ -82,24 +82,6 @@ const createModelMessage = (msg, msg_id) => {
 
     modelBuffer += msg;
 
-    /**
-     * const codeBlockToggle = modelBuffer.match(/```/g);
-    if (codeBlockToggle && codeBlockToggle.length % 2 === 1) {
-        insideCodeBlock = !insideCodeBlock;
-    }
-
-    const isCodeBlockEnd = /```$/.test(modelBuffer.trim()) || /```\n?$/.test(modelBuffer);
-
-    const flushNow = (!insideCodeBlock && (/[.?!]\s$/.test(modelBuffer) || /\n$/.test(modelBuffer) || modelBuffer.length >= flushThreshold)) || isCodeBlockEnd;
-
-    if (flushNow) {
-        msg_box.innerHTML += marked.parse(modelBuffer)
-        modelBuffer = "";
-    }
-     */
-
-     // Look for full code block boundaries
-    // Match only complete lines with three backticks
     const codeBlockBoundary = /(^|\n)```/g;
     const matches = [...modelBuffer.matchAll(codeBlockBoundary)];
     const isCodeBlockEnd = /```$/.test(modelBuffer.trim()) || /```\n?$/.test(modelBuffer);
@@ -170,7 +152,8 @@ const sendMessage = () => {
         } ;
         reader.readAsArrayBuffer(fileToSend);
     } else {
-        socketio.emit("message", {data: message.value})
+        socketio.emit("message", {
+            data: message.value})
     }
     
     createUserMessage(message.value)

@@ -5,6 +5,10 @@ import logging
 import json
 import os
 from Bot import Bot
+import lancedb
+from lancedb.pydantic import LanceModel, Vector
+from lancedb.embeddings import get_registry
+import pandas as pd
 
 from botocore.exceptions import ClientError
 
@@ -42,6 +46,28 @@ bot = Bot(client, logger, model_id)
 UPLOAD_FOLDER = 'source_documents'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+args = {}
+args["name"] = "amazon.titan-embed-text-v2:0"
+args["region"] = "eu-central-1"
+
+model = get_registry().get("bedrock-text").create(**args)
+
+class TextModel(LanceModel):
+    text: str = model.SourceField()
+    vector: Vector(model.ndims()) = model.VectorField()
+    
+script_path = os.path.dirname(os.path.abspath(__file__))
+source_dir = f"{script_path}\source_documents"
+table_name = "test"
+db = lancedb.connect(f"{script_path}/tables")
+db_tables= db.table_names()
+if table_name not in db_tables:
+    print(f"Creating table {table_name}...")
+    tbl = db.create_table(table_name, schema=TextModel, mode="overwrite")
+else:
+    print(f"Table {table_name} already exists, using existing table...")
+    tbl = db.open_table(table_name)
+
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "alsldkjfjc"
@@ -60,8 +86,55 @@ def clear(data):
 
 @socketio.on("message")
 def message(data):
-    """
-    response = bot.call_converse_api(system_message, data["data"], streaming)
+    if "filename" and "filedata" in data:
+        chunks = []
+        filename = makeFile(data["filename"], data["filedata"])
+        with open(os.path.join(source_dir, filename), "r", encoding="utf-8") as f:
+            text = f.read()
+            chunks.append({"text": text})
+        
+        tbl.add(chunks)
+    
+    if bot.getRag():    
+        rs = tbl.search(data["data"]).limit(3)
+        retrivedText = "\n\n".join([ck.text for ck in rs.to_pydantic(TextModel)])
+        print(retrivedText)
+        userMessage = f"Relevant documents:\n{retrivedText}\n\nUser message:\n{data['data']}"
+        
+        modelAnswer(userMessage)
+    else:
+        modelAnswer(data["data"])
+
+@socketio.on("model_selected")
+def model_selected(data):    
+    if(data["model"] == "nova-micro"):
+        bot.setModel("nova-micro")
+    elif(data["model"] == "nova-lite"):
+        bot.setModel("nova-lite")
+    else:
+        bot.setModel("nova-lite")
+    print(bot.getModel())
+    
+@socketio.on("switch_status")
+def switch_status(data):
+    print(f"{data}")
+    if data["type"] == "guardrails_status":
+        bot.setGuardrails(data["status"])
+
+    elif data["type"] == "rag_status":
+        bot.setRag(data["status"])
+        
+        
+def makeFile(filename, filedata):
+    fileCounter = len(os.listdir(source_dir))
+    filenameTotal = f"{fileCounter}. {filename}"
+    filepath = os.path.join(UPLOAD_FOLDER, filenameTotal)
+    with open(filepath, 'wb') as f:
+        f.write(filedata)
+    return filenameTotal
+        
+def modelAnswer(userMessage):
+    response = bot.call_converse_api(system_message, userMessage, streaming)
     msg_id = bot.getMessagesNumber()
     if not streaming:
         start_message = {
@@ -135,34 +208,6 @@ def message(data):
                 if 'metrics' in event['metadata']:
                     print(
                         f"Latency: {metadata['metrics']['latencyMs']} milliseconds")
-    """
-    
-
-@socketio.on("model_selected")
-def model_selected(data):    
-    if(data["model"] == "nova-micro"):
-        bot.setModel("nova-micro")
-    elif(data["model"] == "nova-lite"):
-        bot.setModel("nova-lite")
-    else:
-        bot.setModel("nova-lite")
-    print(bot.getModel())
-    
-@socketio.on("switch_status")
-def switch_status(data):
-    print(f"{data}")
-    if data["type"] == "guardrails_status":
-        bot.setGuardrails(data["status"])
-
-    elif data["type"] == "rag_status":
-        bot.setRag(data["status"])
-        
-        
-def makeFile(filename, filedata):
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
-    with open(filepath, 'wb') as f:
-        f.write(filedata)
-
 
 if __name__ == '__main__':
     app.run(debug=True)
